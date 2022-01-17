@@ -64,44 +64,62 @@ for system in systems:
     system_id = system['systemId']
     print('System Id:  ' +  str(system_id))
 
-    #   Call the NIBE Uplink API - Get the list of parameter Categories defined for this System
-    #   Documentation for this API call is at: https://api.nibeuplink.com/docs/v1/Api/GET-api-v1-systems-systemId-serviceinfo-categories_systemUnitId_parameters
-    response = nibeuplink.get('https://api.nibeuplink.com/api/v1/systems/' + str(system_id) + '/serviceinfo/categories')
+    #   Call the NIBE Uplink API - Get the list of Units connected to this System (i.e. the Master and any Slave Units)
+    #   Documentation for this API call is at: https://api.nibeuplink.com/docs/v1/Api/GET-api-v1-systems-systemId-units
+    response = nibeuplink.get('https://api.nibeuplink.com/api/v1/systems/' + str(system_id) + '/units')
     if response.status_code != HTTP_STATUS_OK:
         print('HTTP Status: ' + str(response.status_code))
         print(response.text)
         raise SystemExit('API call not successful')
     
-    #   The JSON output is simply an array of Categories
-    categories = response.json()
+    #   The JSON output is an Array of Units
+    units = response.json()
 
-    for category in categories:
-        category_id = category['categoryId']
-        print('\tCategory Id:  ', category_id)
+    for unit in units:
+        unit_id = unit['systemUnitId']
+        print('\tUnit Id:  ', unit_id)
 
-        #   Call the NIBE Uplink API - Get the Parameters for this Category
-        #   Documentation for this API call is at: https://api.nibeuplink.com/docs/v1/Api/GET-api-v1-systems-systemId-serviceinfo-categories-categoryId_systemUnitId
-        response = nibeuplink.get('https://api.nibeuplink.com/api/v1/systems/' + str(system_id) + '/serviceinfo/categories/' + str(category_id))
+        #   The Unit ID needs to be supplied as an HTTP Parameter in subsequent API calls
+        params = {'systemUnitId': unit_id}
+
+        #   Call the NIBE Uplink API - Get the list of parameter Categories defined for this System
+        #   Documentation for this API call is at: https://api.nibeuplink.com/docs/v1/Api/GET-api-v1-systems-systemId-serviceinfo-categories_systemUnitId_parameters
+        response = nibeuplink.get('https://api.nibeuplink.com/api/v1/systems/' + str(system_id) + '/serviceinfo/categories', params=params)
         if response.status_code != HTTP_STATUS_OK:
             print('HTTP Status: ' + str(response.status_code))
             print(response.text)
             raise SystemExit('API call not successful')
         
-        #   The JSON output is simply an array of Parameters
-        parameters = response.json()
-        
-        for parameter in parameters:
-            parameter_id = parameter['parameterId']
-            parameter_name = parameter['name']
-            parameter_title = parameter['title']
-            parameter_designation = parameter['designation']
-            parameter_unit = parameter['unit']
-            parameter_display_value = parameter['displayValue']
-            parameter_raw_value = parameter['rawValue']
-            print('\t\tParameter Id:              ' + str(parameter_id))
-            print('\t\t\tParameter Name:          ' + str(parameter_name))
-            print('\t\t\tParameter Title:         ' + str(parameter_title))
-            print('\t\t\tParameter Designation:   ' + str(parameter_designation))
-            print('\t\t\tParameter Unit:          ' + str(parameter_unit))
-            print('\t\t\tParameter Display Value: ' + str(parameter_display_value))
-            print('\t\t\tParameter Raw Value:     ' + str(parameter_raw_value))
+        #   The JSON output is simply an array of Categories
+        categories = response.json()
+
+        for category in categories:
+            category_id = category['categoryId']
+            print('\t\tCategory Id:  ', category_id)
+
+            #   Call the NIBE Uplink API - Get the Parameters for this Category
+            #   Documentation for this API call is at: https://api.nibeuplink.com/docs/v1/Api/GET-api-v1-systems-systemId-serviceinfo-categories-categoryId_systemUnitId
+            response = nibeuplink.get('https://api.nibeuplink.com/api/v1/systems/' + str(system_id) + '/serviceinfo/categories/' + str(category_id), params=params)
+            if response.status_code != HTTP_STATUS_OK:
+                print('HTTP Status: ' + str(response.status_code))
+                print(response.text)
+                raise SystemExit('API call not successful')
+            
+            #   The JSON output is simply an array of Parameters
+            parameters = response.json()
+            
+            for parameter in parameters:
+                parameter_id = parameter['parameterId']
+                parameter_name = parameter['name']
+                parameter_title = parameter['title']
+                parameter_designation = parameter['designation']
+                parameter_unit = parameter['unit']
+                parameter_display_value = parameter['displayValue']
+                parameter_raw_value = parameter['rawValue']
+                print('\t\t\tParameter Id:              ' + str(parameter_id))
+                print('\t\t\t\tParameter Name:          ' + str(parameter_name))
+                print('\t\t\t\tParameter Title:         ' + str(parameter_title))
+                print('\t\t\t\tParameter Designation:   ' + str(parameter_designation))
+                print('\t\t\t\tParameter Unit:          ' + str(parameter_unit))
+                print('\t\t\t\tParameter Display Value: ' + str(parameter_display_value))
+                print('\t\t\t\tParameter Raw Value:     ' + str(parameter_raw_value))
